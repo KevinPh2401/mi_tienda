@@ -3,113 +3,176 @@
 {% block title %}Carrito de Compras - Mi Tienda{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8">Carrito de Compras</h1>
-    
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Tu Carrito de Compras</h1>
+        <p class="text-gray-600">Revisa y gestiona los productos en tu carrito</p>
+    </div>
+
     {% if cart %}
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
+    <div class="grid md:grid-cols-3 gap-8">
+        <!-- Lista de productos -->
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-semibold text-gray-800">Productos ({{ cart_total_items }})</h2>
+                </div>
+                
+                <div class="divide-y divide-gray-100">
                     {% for item in cart %}
-                    {% with product=item.product %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <img src="{{ product.get_image_url }}" alt="{{ product.name }}" 
-                                     class="h-16 w-16 object-cover rounded">
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
-                                    <div class="text-sm text-gray-500">{{ product.category.name }}</div>
-                                </div>
+                    <div class="p-6 flex flex-col sm:flex-row gap-4">
+                        <!-- Imagen -->
+                        <div class="flex-shrink-0">
+                            <img src="{{ item.product.get_image_url }}" alt="{{ item.product.name }}" 
+                                 class="w-24 h-24 object-cover rounded-lg shadow-sm">
+                        </div>
+                        
+                        <!-- Información del producto -->
+                        <div class="flex-grow">
+                            <h3 class="font-semibold text-gray-800 text-lg mb-1">{{ item.product.name }}</h3>
+                            <p class="text-gray-600 text-sm mb-2">{{ item.product.category.name }}</p>
+                            
+                            <div class="flex items-center gap-4 mb-3">
+                                <span class="text-2xl font-bold text-blue-600">
+                                    ${{ item.price|floatformat:2 }}
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    IVA: ${{ item.iva_amount|floatformat:2 }}
+                                </span>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">${{ item.price|floatformat:2 }}</div>
-                            <div class="text-xs text-gray-500">
-                                IVA: ${{ item.iva_amount|floatformat:2 }}
+                            
+                            <!-- Contador de cantidad -->
+                            <div class="flex items-center gap-3">
+                                <form action="{% url 'cart:cart_add' item.product.id %}" method="post" class="flex items-center">
+                                    {% csrf_token %}
+                                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" 
+                                           class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="hidden" name="override" value="true">
+                                    <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800 transition-colors">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </form>
+                                
+                                <form action="{% url 'cart:cart_remove' item.product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-red-600 hover:text-red-800 transition-colors ml-4">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </form>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <form action="{% url 'cart:cart_add' product.id %}" method="post" class="flex items-center">
-                                {% csrf_token %}
-                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" 
-                                       class="w-20 px-2 py-1 border border-gray-300 rounded-lg">
-                                <input type="hidden" name="override" value="true">
-                                <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </form>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">${{ item.total_price|floatformat:2 }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <form action="{% url 'cart:cart_remove' product.id %}" method="post">
-                                {% csrf_token %}
-                                <button type="submit" class="text-red-600 hover:text-red-800">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endwith %}
+                        </div>
+                        
+                        <!-- Subtotal -->
+                        <div class="flex-shrink-0 text-right">
+                            <p class="text-lg font-semibold text-gray-800">
+                                ${{ item.total_price|floatformat:2 }}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                {{ item.quantity }} x ${{ item.price|floatformat:2 }}
+                            </p>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Resumen del carrito -->
-        <div class="border-t border-gray-200 px-6 py-4">
-            <div class="flex justify-between items-center">
-                <div class="text-lg font-semibold">Resumen del pedido</div>
-                <div class="text-right">
-                    <div class="mb-2">
-                        <span class="text-gray-600">Subtotal:</span>
-                        <span class="font-semibold ml-2">${{ subtotal|floatformat:2 }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-gray-600">IVA:</span>
-                        <span class="font-semibold ml-2">${{ total_iva|floatformat:2 }}</span>
-                    </div>
-                    <div class="text-xl font-bold border-t border-gray-300 pt-2 mt-2">
-                        <span class="text-gray-800">Total:</span>
-                        <span class="text-blue-600 ml-2">${{ total|floatformat:2 }}</span>
-                    </div>
                 </div>
             </div>
             
-            <div class="mt-6 flex justify-end space-x-4">
+            <!-- Continuar comprando -->
+            <div class="mt-6">
                 <a href="{% url 'products:home' %}" 
-                   class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
-                    Seguir comprando
+                   class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Continuar comprando
                 </a>
-                <a href="{% url 'orders:order_create' %}" 
-                   class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Proceder al pago
-                </a>
+            </div>
+        </div>
+
+        <!-- Resumen del pedido -->
+        <div class="md:col-span-1">
+            <div class="bg-white rounded-xl shadow-md sticky top-6">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-semibold text-gray-800">Resumen del Pedido</h2>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-semibold">${{ subtotal|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">IVA:</span>
+                        <span class="font-semibold">${{ total_iva|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="border-t border-gray-200 pt-4">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Total:</span>
+                            <span class="text-blue-600">${{ total|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <a href="{% url 'orders:order_create' %}" 
+                           class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center">
+                            <i class="fas fa-credit-card mr-2"></i>
+                            Proceder al Pago
+                        </a>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 text-center mt-4">
+                        * Los impuestos están incluidos en el precio final
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Beneficios -->
+            <div class="mt-6 bg-blue-50 rounded-xl p-6">
+                <h3 class="font-semibold text-blue-800 mb-3">Beneficios de tu compra</h3>
+                <ul class="space-y-2 text-sm text-blue-600">
+                    <li class="flex items-center">
+                        <i class="fas fa-shipping-fast mr-2"></i>
+                        Envío gratis en órdenes mayores a $100
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        Compra segura garantizada
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-undo mr-2"></i>
+                        Devoluciones en 30 días
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
     {% else %}
-    <div class="bg-white rounded-lg shadow-md p-12 text-center">
-        <i class="fas fa-shopping-cart fa-5x text-gray-300 mb-6"></i>
-        <h2 class="text-2xl font-semibold text-gray-600 mb-4">Tu carrito está vacío</h2>
-        <p class="text-gray-500 mb-6">Agrega algunos productos para comenzar a comprar</p>
-        <a href="{% url 'products:home' %}" 
-           class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Comenzar a comprar
-        </a>
+    <!-- Carrito vacío -->
+    <div class="bg-white rounded-xl shadow-md p-12 text-center">
+        <div class="max-w-md mx-auto">
+            <div class="text-6xl text-gray-300 mb-6">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-gray-600 mb-4">Tu carrito está vacío</h2>
+            <p class="text-gray-500 mb-8">Agrega algunos productos increíbles para comenzar tu experiencia de compra</p>
+            <a href="{% url 'products:home' %}" 
+               class="inline-flex items-center bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                <i class="fas fa-store mr-2"></i>
+                Descubrir Productos
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>
+
+<!-- Estilos adicionales -->
+<style>
+.cart-item {
+    transition: all 0.3s ease;
+}
+.cart-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}

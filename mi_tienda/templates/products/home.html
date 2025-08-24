@@ -1,14 +1,18 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Inicio - Mi Tienda{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<div class="bg-blue-600 text-white py-12 mb-12 rounded-lg">
-    <div class="text-center">
-        <h1 class="text-4xl font-bold mb-4">Bienvenido a Mi Tienda</h1>
+<div class="bg-blue-600 text-white py-12 mb-12 rounded-lg relative bg-cover bg-center bg-[url('{% static "images/fondo1.png" %}')]">
+    <!-- Overlay para mejorar la legibilidad del texto -->
+    <div class="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>
+    
+    <div class="text-center relative z-10">
+        <h1 class="text-4xl font-bold mb-4">Bienvenido a Mi Tienda de Tenis Deportivos</h1>
         <p class="text-xl mb-8">Descubre nuestros productos exclusivos</p>
-        <a href="#products" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">
+        <a href="#products" class="bg-blue-800 text-white-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-900">
             Ver Productos
         </a>
     </div>
@@ -32,15 +36,15 @@
         </form>
     </div>
     
-    <div class="w-full md:w-1/3">
-        <form method="get" class="flex gap-2">
-            <input type="text" name="search" value="{{ search_query }}" 
-                   placeholder="Buscar productos..." 
-                   class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                <i class="fas fa-search"></i>
-            </button>
-        </form>
+    <div class="w-full md:w-2/3 lg:w-3/4">  <!-- Cambiado a más ancho -->
+    <form method="get" class="flex gap-2">
+        <input type="text" name="search" value="{{ search_query }}" 
+               placeholder="Buscar productos..." 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
     </div>
 </div>
 
@@ -66,16 +70,11 @@
             
             <div class="flex gap-2">
                 <a href="{% url 'products:product_detail' product.id %}" 
-                   class="flex-1 text-center bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300">
+                   class="flex-1 text-center bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 rounded-lg hover:from-blue-600 hover:to-blue-800 transition-colors">
                     Ver detalles
                 </a>
-                <form action="{% url 'cart:cart_add' product.id %}" method="post" class="flex-1">
-                    {% csrf_token %}
-                    <input type="hidden" name="quantity" value="1">
-                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-cart-plus"></i>
-                    </button>
-                </form>
+                <!-- NUEVO BOTÓN CON AJAX -->
+                
             </div>
         </div>
     </div>
@@ -120,5 +119,67 @@
         {% endif %}
     </nav>
 </div>
+
+
+<!-- Agrega este script al final de home.html -->
+<script>
+function addToCart(productId) {
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'quantity=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar notificación bonita
+            showNotification('Producto agregado al carrito 🛒');
+            
+            // Actualizar contador del carrito
+            updateCartCounter(data.cart_total_items);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al agregar al carrito');
+    });
+}
+
+function showNotification(message) {
+    // Crear notificación flotante
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300 animate-bounce';
+    notification.textContent = message;
+    notification.style.transform = 'translateX(100%)';
+    
+    document.body.appendChild(notification);
+    
+    // Animación de entrada
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Animación de salida después de 3 segundos
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+function updateCartCounter(count) {
+    const counter = document.querySelector('.cart-counter');
+    if (counter) {
+        counter.textContent = count;
+        counter.classList.remove('hidden');
+    }
+}
+</script>
 {% endif %}
 {% endblock %}

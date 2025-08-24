@@ -9,18 +9,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <!-- Navbar - MODIFICADA A NEGRO Y CENTRADA -->
+<nav class="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg">
         <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <a href="{% url 'products:home' %}" class="text-2xl font-bold">Mi Tienda</a>
+            <div class="flex flex-col md:flex-row justify-between items-center py-4 space-y-4 md:space-y-0">
+                <!-- Logo centrado en móviles, a la izquierda en desktop -->
+                <a href="{% url 'products:home' %}" class="text-2xl font-bold order-1 md:order-none">
+                    Mi Tienda
+                </a>
                 
-                <div class="flex items-center space-x-4">
-                    <a href="{% url 'products:home' %}" class="hover:text-blue-200">
+                <!-- Menú de navegación centrado -->
+                <div class="flex flex-wrap justify-center items-center space-x-4 order-3 md:order-none w-full md:w-auto">
+                    <a href="{% url 'products:home' %}" class="hover:text-gray-300 py-1">
                         <i class="fas fa-home mr-1"></i> Inicio
                     </a>
                     
-                    <a href="{% url 'cart:cart_detail' %}" class="hover:text-blue-200 relative">
+                    <a href="{% url 'cart:cart_detail' %}" class="hover:text-gray-300 relative py-1">
                         <i class="fas fa-shopping-cart mr-1"></i> Carrito
                         {% if cart_total_items > 0 %}
                         <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -31,28 +35,31 @@
                     
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="hover:text-blue-200">
+                        <a href="{% url 'admin:index' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-cog mr-1"></i> Admin
                         </a>
-                        <a href="{% url 'products:product_list' %}" class="hover:text-blue-200">
+                        <a href="{% url 'products:product_list' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-box mr-1"></i> Productos
                         </a>
-                        <a href="{% url 'products:category_list' %}" class="hover:text-blue-200">
+                        <a href="{% url 'products:category_list' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-tags mr-1"></i> Categorías
                         </a>
                         {% endif %}
-                        <a href="{% url 'orders:order_list' %}" class="hover:text-blue-200">
+                        <a href="{% url 'orders:order_list' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-list mr-1"></i> Pedidos
                         </a>
-                        <a href="{% url 'users:logout' %}" class="hover:text-blue-200">
+                        <a href="{% url 'users:logout' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-sign-out-alt mr-1"></i> Cerrar Sesión
                         </a>
                     {% else %}
-                        <a href="{% url 'users:login' %}" class="hover:text-blue-200">
+                        <a href="{% url 'users:login' %}" class="hover:text-gray-300 py-1">
                             <i class="fas fa-sign-in-alt mr-1"></i> Iniciar Sesión
                         </a>
                     {% endif %}
                 </div>
+                
+                <!-- Espacio para mantener la alineación (opcional) -->
+                <div class="order-2 md:order-none md:w-24"></div>
             </div>
         </div>
     </nav>
