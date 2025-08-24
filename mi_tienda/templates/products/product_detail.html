@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+        <a href="{% url 'products:home' %}" class="text-blue-600 hover:underline">Inicio</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'products:category_detail' product.category.id %}" class="text-blue-600 hover:underline">
+            {{ product.category.name }}
+        </a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-600">{{ product.name }}</span>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="md:flex">
+            <!-- Imagen del producto -->
+            <div class="md:w-1/2">
+                <img src="{{ product.get_image_url }}" alt="{{ product.name }}" 
+                     class="w-full h-96 object-cover">
+            </div>
+            
+            <!-- Información del producto -->
+            <div class="md:w-1/2 p-6">
+                <h1 class="text-3xl font-bold mb-4">{{ product.name }}</h1>
+                
+                <div class="mb-6">
+                    <span class="text-4xl font-bold text-blue-600">
+                        ${{ product.price_with_iva|floatformat:2 }}
+                    </span>
+                    <div class="text-sm text-gray-600">
+                        <span>Precio sin IVA: ${{ product.unit_price|floatformat:2 }}</span>
+                        <span class="mx-2">•</span>
+                        <span>IVA: {{ product.iva_percentage }}% (${{ product.iva_amount|floatformat:2 }})</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="font-semibold mb-2">Descripción</h3>
+                    <p class="text-gray-700">{{ product.description }}</p>
+                </div>
+                
+                {% if product.additional_info %}
+                <div class="mb-6">
+                    <h3 class="font-semibold mb-2">Información adicional</h3>
+                    <p class="text-gray-700">{{ product.additional_info }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-6">
+                    <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
+                        Categoría: {{ product.category.name }}
+                    </span>
+                    <span class="inline-block {% if product.stock > 0 %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %} rounded-full px-3 py-1 text-sm font-semibold">
+                        Stock: {{ product.stock }}
+                    </span>
+                </div>
+                
+                {% if product.stock > 0 %}
+                <form action="{% url 'cart:cart_add' product.id %}" method="post" class="flex items-center gap-4">
+                    {% csrf_token %}
+                    <div class="flex items-center">
+                        <label for="quantity" class="mr-2 font-semibold">Cantidad:</label>
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" 
+                               class="w-20 px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+                        <i class="fas fa-cart-plus mr-2"></i> Agregar al carrito
+                    </button>
+                </form>
+                {% else %}
+                <div class="bg-red-100 text-red-700 px-4 py-3 rounded-lg">
+                    <i class="fas fa-exclamation-circle mr-2"></i> Producto agotado
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos relacionados -->
+    {% if related_products %}
+    <div class="mt-12">
+        <h2 class="text-2xl font-bold mb-6">Productos relacionados</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <img src="{{ related.get_image_url }}" alt="{{ related.name }}" 
+                     class="w-full h-48 object-cover">
+                
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-2">{{ related.name }}</h3>
+                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ related.description }}</p>
+                    
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xl font-bold text-blue-600">
+                            ${{ related.price_with_iva|floatformat:2 }}
+                        </span>
+                    </div>
+                    
+                    <a href="{% url 'products:product_detail' related.id %}" 
+                       class="block w-full bg-gray-200 text-gray-800 py-2 text-center rounded-lg hover:bg-gray-300">
+                        Ver detalles
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

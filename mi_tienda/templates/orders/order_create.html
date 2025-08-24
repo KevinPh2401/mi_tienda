@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Finalizar Compra - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Finalizar Compra</h1>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+        <!-- Resumen del pedido -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Resumen de tu pedido</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                {% for item in cart %}
+                <div class="flex justify-between items-center py-3 border-b border-gray-200">
+                    <div>
+                        <div class="font-medium">{{ item.product.name }}</div>
+                        <div class="text-sm text-gray-600">{{ item.quantity }} x ${{ item.price|floatformat:2 }}</div>
+                    </div>
+                    <div class="font-semibold">${{ item.total_price|floatformat:2 }}</div>
+                </div>
+                {% endfor %}
+                
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span>${{ subtotal|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>IVA:</span>
+                        <span>${{ total_iva|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
+                        <span>Total:</span>
+                        <span class="text-blue-600">${{ total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulario de envío -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Información de envío</h2>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Nombres</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Apellidos</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700">Dirección de envío</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="{{ form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700">Código postal</label>
+                            {{ form.postal_code }}
+                            {% if form.postal_code.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.postal_code.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700">Ciudad</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.city.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">Teléfono</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                        <p class="text-red-500 text-xs mt-1">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700">
+                        Confirmar Pedido
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

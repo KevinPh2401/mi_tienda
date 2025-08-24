@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Información básica -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">Nombre del producto</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700">Categoría</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.category.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Descripción -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">Descripción</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Información adicional -->
+            <div>
+                <label for="{{ form.additional_info.id_for_label }}" class="block text-sm font-medium text-gray-700">Información adicional</label>
+                {{ form.additional_info }}
+                {% if form.additional_info.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.additional_info.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Precios y stock -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <label for="{{ form.unit_price.id_for_label }}" class="block text-sm font-medium text-gray-700">Precio unitario</label>
+                    {{ form.unit_price }}
+                    {% if form.unit_price.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.unit_price.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.iva_percentage.id_for_label }}" class="block text-sm font-medium text-gray-700">IVA (%)</label>
+                    {{ form.iva_percentage }}
+                    {% if form.iva_percentage.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.iva_percentage.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.stock.id_for_label }}" class="block text-sm font-medium text-gray-700">Stock</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.stock.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Imagen -->
+            <div>
+                <label for="{{ form.image.id_for_label }}" class="block text-sm font-medium text-gray-700">Imagen del producto</label>
+                {{ form.image }}
+                {% if form.image.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.image.errors.0 }}</p>
+                {% endif %}
+                
+                {% if product and product.image %}
+                <div class="mt-2">
+                    <p class="text-sm text-gray-600">Imagen actual:</p>
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-20 w-20 object-cover rounded mt-1">
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Estado -->
+            <div>
+                <label class="flex items-center">
+                    {{ form.is_active }}
+                    <span class="ml-2 text-sm font-medium text-gray-700">Producto activo</span>
+                </label>
+            </div>
+            
+            <!-- Botones -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'products:product_list' %}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    {{ product|yesno:"Actualizar,Crear" }} Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

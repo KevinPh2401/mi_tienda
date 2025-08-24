@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header de la categoría -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">{{ category.name }}</h1>
+                <p class="text-gray-600 mb-4">{{ category.description }}</p>
+                <div class="flex space-x-4 text-sm text-gray-500">
+                    <span>{{ category.products.count }} productos</span>
+                    <span>Creado: {{ category.created_at|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'products:category_update' category.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-edit mr-2"></i> Editar
+                </a>
+                <a href="{% url 'products:category_list' %}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
+                    Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos de la categoría -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6">Productos en esta categoría</h2>
+        
+        {% if page_obj %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in page_obj %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <img src="{{ product.get_image_url }}" alt="{{ product.name }}" 
+                     class="w-full h-48 object-cover rounded-lg mb-4">
+                
+                <h3 class="font-semibold text-lg mb-2">{{ product.name }}</h3>
+                <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ product.description }}</p>
+                
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xl font-bold text-blue-600">
+                        ${{ product.price_with_iva|floatformat:2 }}
+                    </span>
+                    <span class="text-sm text-gray-500">
+                        Stock: {{ product.stock }}
+                    </span>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <a href="{% url 'products:product_detail' product.id %}" 
+                       class="flex-1 text-center bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 text-sm">
+                        Ver detalles
+                    </a>
+                    <a href="{% url 'products:product_update' product.id %}" 
+                       class="px-3 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 text-sm">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+                    &laquo;
+                </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="px-3 py-2 border border-blue-600 bg-blue-600 text-white rounded-lg">
+                    {{ num }}
+                </span>
+                {% else %}
+                <a href="?page={{ num }}" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+                    {{ num }}
+                </a>
+                {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">
+                    &raquo;
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-box-open fa-3x text-gray-300 mb-4"></i>
+            <h3 class="text-lg font-semibold text-gray-600">No hay productos en esta categoría</h3>
+            <p class="text-gray-500 mb-6">Agrega productos para verlos aquí</p>
+            <a href="{% url 'products:product_create' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Agregar Producto
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

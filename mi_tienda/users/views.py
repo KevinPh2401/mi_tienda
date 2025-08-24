@@ -9,20 +9,22 @@ def user_login(request):
         return redirect('products:home')
     
     if request.method == 'POST':
-        form = CustomLoginForm(data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                next_url = request.GET.get('next', 'products:home')
-                messages.success(request, f'¡Bienvenido {user.username}!')
-                return redirect(next_url)
-        messages.error(request, 'Credenciales inválidas')
-    else:
-        form = CustomLoginForm()
+        # **SOLUCIÓN: Usar autenticación directa sin el formulario**
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next', 'products:home')
+            messages.success(request, f'¡Bienvenido {user.username}!')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Credenciales inválidas')
     
+    # Solo usar el formulario para GET requests
+    form = CustomLoginForm()
     return render(request, 'users/login.html', {'form': form})
 
 @login_required
