@@ -1,92 +1,121 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.paginator import Paginator
-from cart.cart import Cart
-from .models import Order, OrderItem
-from .forms import OrderCreateForm
+from django.http import JsonResponse
+from django.utils import timezone
 from decimal import Decimal
+import random
+import string
+from .models import Order, OrderItem
+from cart.cart import Cart
+from .forms import OrderCreateForm
 
 @login_required
 def order_create(request):
     cart = Cart(request)
-    if len(cart) == 0:
-        messages.error(request, 'Tu carrito está vacío')
+    
+    if not cart:
+        messages.warning(request, 'Tu carrito está vacío')
         return redirect('cart:cart_detail')
     
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
         if form.is_valid():
-            # Calcular totales del carrito
-            subtotal = Decimal('0.00')
-            total_iva = Decimal('0.00')
-            
-            # Crear el pedido
             order = form.save(commit=False)
             order.user = request.user
             
-            # Calcular totales antes de guardar
+            # Calcular totales
+            subtotal = Decimal('0.00')
+            total_iva = Decimal('0.00')
+            
             for item in cart:
-                product = item['product']
-                quantity = item['quantity']
-                subtotal += product.unit_price * quantity
-                total_iva += product.iva_amount * quantity
+                item_subtotal = item['product'].unit_price * item['quantity']
+                item_iva = item['product'].iva_amount * item['quantity']
+                subtotal += item_subtotal
+                total_iva += item_iva
             
             order.subtotal = subtotal
             order.iva_total = total_iva
             order.total = subtotal + total_iva
             order.save()
             
-            # Crear los items del pedido
+            # Crear items del pedido
             for item in cart:
-                product = item['product']
                 OrderItem.objects.create(
                     order=order,
-                    product=product,
-                    price=product.price_with_iva,
+                    product=item['product'],
                     quantity=item['quantity'],
-                    iva_percentage=product.iva_percentage,
-                    unit_price=product.unit_price
+                    price=item['product'].price_with_iva,
+                    unit_price=item['product'].unit_price,
+                    iva_percentage=item['product'].iva_percentage
                 )
             
-            # Limpiar el carrito
-            cart.clear()
-            
-            messages.success(request, f'¡Pedido #{order.id} creado exitosamente!')
-            return redirect('orders:order_detail', order_id=order.id)
+            request.session['order_id'] = order.id
+            return redirect('orders:payment_method')
     else:
-        form = OrderCreateForm()
+        # Prellenar con datos del usuario si existen
+        initial_data = {}
+        if request.user.first_name and request.user.last_name:
+            initial_data['first_name'] = request.user.first_name
+            initial_data['last_name'] = request.user.last_name
+        if request.user.email:
+            initial_data['email'] = request.user.email
+        
+        form = OrderCreateForm(initial=initial_data)
     
-    # Calcular totales para mostrar en el formulario
-    subtotal = Decimal('0.00')
-    total_iva = Decimal('0.00')
-    
-    for item in cart:
-        product = item['product']
-        quantity = item['quantity']
-        subtotal += product.unit_price * quantity
-        total_iva += product.iva_amount * quantity
-    
-    total = subtotal + total_iva
-    
-    context = {
+    return render(request, 'orders/order_create.html', {
         'cart': cart,
-        'form': form,
-        'subtotal': subtotal,
-        'total_iva': total_iva,
-        'total': total,
-    }
-    return render(request, 'orders/order_create.html', context)
+        'form': form
+    })
 
 @login_required
-def order_list(request):
-    orders = Order.objects.filter(user=request.user)
+def payment_method(request):
+    order_id = request.session.get('order_id')
+    if not order_id:
+        return redirect('cart:cart_detail')
     
-    paginator = Paginator(orders, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
     
-    return render(request, 'orders/order_list.html', {'page_obj': page_obj})
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method')
+        order.payment_method = payment_method
+        order.save()
+        return redirect('orders:payment_process')
+    
+    return render(request, 'orders/payment_method.html', {'order': order})
+
+@login_required
+def payment_process(request):
+    order_id = request.session.get('order_id')
+    if not order_id:
+        return redirect('cart:cart_detail')
+    
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Simulación de procesamiento de pago
+    if request.method == 'POST':
+        # Generar ID de transacción simulado
+        transaction_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=12))
+        
+        # Actualizar orden
+        order.payment_status = True
+        order.payment_date = timezone.now()
+        order.status = 'paid'
+        order.transaction_id = transaction_id
+        order.save()
+        
+        # Limpiar carrito
+        cart = Cart(request)
+        cart.clear()
+        
+        # Eliminar order_id de la sesión
+        if 'order_id' in request.session:
+            del request.session['order_id']
+        
+        messages.success(request, f'¡Pago realizado exitosamente! ID de transacción: {transaction_id}')
+        return redirect('orders:order_detail', order_id=order.id)
+    
+    return render(request, 'orders/payment_process.html', {'order': order})
 
 @login_required
 def order_detail(request, order_id):
@@ -94,17 +123,6 @@ def order_detail(request, order_id):
     return render(request, 'orders/order_detail.html', {'order': order})
 
 @login_required
-def order_cancel(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    if order.status in ['pending', 'processing']:
-        if request.method == 'POST':
-            order.status = 'cancelled'
-            order.save()
-            messages.success(request, f'Pedido #{order.id} cancelado exitosamente')
-            return redirect('orders:order_detail', order_id=order.id)
-        
-        return render(request, 'orders/order_cancel.html', {'order': order})
-    else:
-        messages.error(request, 'No se puede cancelar este pedido')
-        return redirect('orders:order_detail', order_id=order.id)
+def order_list(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'orders/order_list.html', {'orders': orders})

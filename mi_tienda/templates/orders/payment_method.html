@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Método de Pago - Mi Tienda{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold mb-6">Seleccionar Método de Pago</h1>
+        
+        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h2 class="font-semibold mb-2">Resumen del Pedido</h2>
+            <p>Total a pagar: <span class="font-bold text-xl text-blue-600">${{ order.total|floatformat:2 }}</span></p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="space-y-4 mb-6">
+                <h3 class="font-semibold">Selecciona tu método de pago:</h3>
+                
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                    <input type="radio" name="payment_method" value="credit_card" class="mr-3" required>
+                    <div>
+                        <span class="font-medium">Tarjeta de Crédito</span>
+                        <p class="text-sm text-gray-600">Paga con tu tarjeta de crédito</p>
+                    </div>
+                </label>
+                
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                    <input type="radio" name="payment_method" value="debit_card" class="mr-3">
+                    <div>
+                        <span class="font-medium">Tarjeta de Débito</span>
+                        <p class="text-sm text-gray-600">Paga con tu tarjeta de débito</p>
+                    </div>
+                </label>
+                
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
+                    <input type="radio" name="payment_method" value="paypal" class="mr-3">
+                    <div>
+                        <span class="font-medium">PayPal</span>
+                        <p class="text-sm text-gray-600">Paga a través de PayPal</p>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="flex space-x-4">
+                <a href="{% url 'cart:cart_detail' %}" class="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-lg text-center hover:bg-gray-400">
+                    Volver al Carrito
+                </a>
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700">
+                    Continuar al Pago
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
